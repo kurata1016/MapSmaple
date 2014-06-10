@@ -6,19 +6,22 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnCameraChangeListener;
 import com.google.android.gms.maps.GoogleMap.OnMyLocationButtonClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
-import android.content.Context;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.location.Location;
 import android.location.LocationListener;
-import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements LocationListener, OnCameraChangeListener, OnMyLocationButtonClickListener {
 	// 初期座標(スカイツリー)
@@ -31,8 +34,14 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	private CameraUpdate camera;
 	// マーカーを設置する設定
 	private MarkerOptions markers;
+	// カラータグ
+	private static final int RED = 0;
+	private static final int BLUE = 1;
+	private static final int YELLOW = 2;
+	private static final int GREEN = 3;
+
 	// locationManager取得
-	private LocationManager mgr;
+	// private LocationManager mgr;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +76,10 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 		markers = new MarkerOptions();
 		// マーカーの座標を決定
 		markers.position(START_POS);
+		// マーカー色設定
+		BitmapDescriptor icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+		// マーカー色変更
+		markers.icon(icon);
 		// マーカーを追加
 		map.addMarker(markers);
 	}
@@ -83,7 +96,6 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
@@ -93,36 +105,92 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		case R.id.location:
-			mgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-			mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, (LocationListener) MainActivity.this);
-			return true;
+		// //　現在地取得
+		// case R.id.location:
+		// mgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+		// mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0,
+		// (LocationListener) MainActivity.this);
+		// return true;
 		case R.id.marker:
 			// 地図の中心座標を取得
 			CameraPosition cameraPos = map.getCameraPosition();
-			pos = new LatLng(cameraPos.target.latitude,cameraPos.target.longitude);
+			pos = new LatLng(cameraPos.target.latitude, cameraPos.target.longitude);
 			// マーカーの準備
 			markers = new MarkerOptions();
 			// マーカーの座標を決定
 			markers.position(pos);
-			// マーカーを追加
-			map.addMarker(markers);
+
+			// 色選択ダイアログ表示
+			AlertDialog.Builder builder = new AlertDialog.Builder(this);
+			builder.setTitle("マーカーの色を選択してください");
+			String[] color = { "red", "blue", "yellow", "green" };
+			builder.setSingleChoiceItems(color, 0, colorListener);
+			// 決定・キャンセル用にボタンも配置 //
+			builder.setPositiveButton("OK", btnListener);
+			builder.setNeutralButton("Cancel", btnListener);
+			// ダイアログ表示
+			AlertDialog dialog = builder.create();
+			dialog.show();
+
 		default:
 			break;
 		}
 		return false;
 	}
 
+	DialogInterface.OnClickListener colorListener = new DialogInterface.OnClickListener() {
+
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			BitmapDescriptor icon = null;
+			switch (which) {
+			case RED:
+				icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED);
+				break;
+			case BLUE:
+				icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE);
+				break;
+			case YELLOW:
+				icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW);
+				break;
+			case GREEN:
+				icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN);
+				break;
+			}
+			markers.icon(icon);
+		}
+	};
+
+	DialogInterface.OnClickListener btnListener = new DialogInterface.OnClickListener() {
+
+		@Override
+		public void onClick(DialogInterface dialog, int which) {
+			String btnStr = "";
+			switch (which) {
+			case AlertDialog.BUTTON_POSITIVE:
+				btnStr = "OK";
+				// マーカーを追加
+				map.addMarker(markers);
+				break;
+			case AlertDialog.BUTTON_NEUTRAL:
+				btnStr = "Cancel";
+				break;
+			}
+			Toast.makeText(MainActivity.this, btnStr + " button clicked.", Toast.LENGTH_SHORT).show();
+		}
+	};
+
 	@Override
 	public void onLocationChanged(Location location) {
-		// 経度・緯度取得
-		double lat = location.getLatitude(); // latitude
-		double lon = location.getLongitude(); // longitude
-		pos = new LatLng(lat, lon);
-		// カメラポジション設定
-		CameraPosition cameraPos = new CameraPosition.Builder().target(pos).zoom(16.0f).bearing(0).build();
-		// 移動
-		map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
+		// // 経度・緯度取得
+		// double lat = location.getLatitude(); // latitude
+		// double lon = location.getLongitude(); // longitude
+		// pos = new LatLng(lat, lon);
+		// // カメラポジション設定
+		// CameraPosition cameraPos = new
+		// CameraPosition.Builder().target(pos).zoom(16.0f).bearing(0).build();
+		// // 移動
+		// map.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPos));
 
 	}
 
