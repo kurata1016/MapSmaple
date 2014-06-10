@@ -105,12 +105,6 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		switch (item.getItemId()) {
-		// //　現在地取得
-		// case R.id.location:
-		// mgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		// mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0,
-		// (LocationListener) MainActivity.this);
-		// return true;
 		case R.id.marker:
 			// 地図の中心座標を取得
 			CameraPosition cameraPos = map.getCameraPosition();
@@ -132,8 +126,14 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 			AlertDialog dialog = builder.create();
 			dialog.show();
 
-		default:
-			break;
+			// //　現在地取得
+			// case R.id.location:
+			// mgr = (LocationManager)
+			// getSystemService(Context.LOCATION_SERVICE);
+			// mgr.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0,
+			// 0,
+			// (LocationListener) MainActivity.this);
+			// return true;
 		}
 		return false;
 	}
@@ -165,18 +165,16 @@ public class MainActivity extends FragmentActivity implements LocationListener, 
 
 		@Override
 		public void onClick(DialogInterface dialog, int which) {
-			String btnStr = "";
 			switch (which) {
 			case AlertDialog.BUTTON_POSITIVE:
-				btnStr = "OK";
 				// マーカーを追加
 				map.addMarker(markers);
+				Toast.makeText(MainActivity.this, "マーカーを追加しました", Toast.LENGTH_SHORT).show();
 				break;
 			case AlertDialog.BUTTON_NEUTRAL:
-				btnStr = "Cancel";
+				Toast.makeText(MainActivity.this, "キャンセルしました", Toast.LENGTH_SHORT).show();
 				break;
 			}
-			Toast.makeText(MainActivity.this, btnStr + " button clicked.", Toast.LENGTH_SHORT).show();
 		}
 	};
 
